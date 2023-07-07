@@ -5,8 +5,12 @@
 package it.polito.tdp.imdb;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.imdb.model.Actor;
 import it.polito.tdp.imdb.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -35,10 +39,10 @@ public class FXMLController {
     private Button btnSimulazione; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxGenere"
-    private ComboBox<?> boxGenere; // Value injected by FXMLLoader
+    private ComboBox<String> boxGenere; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxAttore"
-    private ComboBox<?> boxAttore; // Value injected by FXMLLoader
+    private ComboBox<String> boxAttore; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtGiorni"
     private TextField txtGiorni; // Value injected by FXMLLoader
@@ -48,12 +52,37 @@ public class FXMLController {
 
     @FXML
     void doAttoriSimili(ActionEvent event) {
-
+    	String actorString = this.boxAttore.getValue();
+    	if(actorString == null) {
+    		this.txtResult.setText("Inserire un attore nella box");
+    		return;
+    	}
+    	String actorIDs = actorString.substring(actorString.indexOf("(")+1, actorString.lastIndexOf(")"));
+    	Integer actorId = Integer.parseInt(actorIDs);
+    	List<Actor>simili = new ArrayList<>(model.attoriSimili(actorId));
+    	String s = "Attori simili : \n";
+    	for(Actor x : simili) {
+    		s += x.getLastName()+" "+x.getFirstName()+" ("+x.getId()+") \n";
+    	}
+    	this.txtResult.setText(s);
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-
+    	String genre = this.boxGenere.getValue();
+    	if(genre == null) {
+    		this.txtResult.setText("Inserire un genere nella box");
+    		return;
+    	}
+    	String s = model.creaGrafo(genre);
+    	this.txtResult.setText(s);
+    	
+    	List<Actor>vertici = new ArrayList<>(model.getGrafo().vertexSet());
+    	Collections.sort(vertici);
+    	for(Actor a : vertici) {
+    		String actorString =  a.getLastName()+" "+a.getFirstName()+" ("+a.getId()+")";
+    		this.boxAttore.getItems().add(actorString);
+    	}
     }
 
     @FXML
@@ -75,5 +104,8 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	for(String g : model.getAllGeneri()) {
+    		this.boxGenere.getItems().add(g);
+    	}
     }
 }
